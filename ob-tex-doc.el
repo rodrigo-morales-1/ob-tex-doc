@@ -33,6 +33,18 @@ for executing all those commands is returned."
   "This variable is not intended to be modified since its value
   is automatically set.")
 
+(defun ob-tex-doc-open-pdf-file ()
+  "Open the resulting PDF file"
+  (interactive)
+  (unless ob-tex-doc-tmp-dir
+    (error "The temporary directory hasn't been initialized yet, so there is no PDF file."))
+  (make-process
+   :name "xdg-open"
+   :command `("xdg-open"
+              ,(concat
+                (file-name-as-directory ob-tex-doc-tmp-dir)
+                "main.pdf"))))
+
 (defun ob-tex-doc-set-temp-dir ()
   "Set the directory where code blocks are tangled, output
 files are saved and log files created by TeX compilers are
