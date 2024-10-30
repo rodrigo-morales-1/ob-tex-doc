@@ -1,5 +1,9 @@
 (defvar org-babel-default-header-args:tex-doc
-  '((:build . (("pdflatex" _)))))
+  '((:build . (("pdflatex" _)))
+    ;; By default, we set :results to "silent", because we don't show
+    ;; anything in the #+RESULTS block because the build command is
+    ;; executed asynchronously.
+    (:results . "silent")))
 
 (defun ob-tex-doc-check-executables-installed (cmds)
   "Given the content of the :cmd header argument. A one-liner
