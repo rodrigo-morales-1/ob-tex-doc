@@ -76,41 +76,56 @@ remove unintended files."
     (delete-file file)))
 
 (defun org-babel-expand-body:tex-doc (body params)
-  (catch 'done
-    ;; If the header argument :expand is set to "no", then exit the
-    ;; function because nothing is to be done.
-    (let ((expand (cdr (assq :expand params))))
-      (when (equal expand "no")
-        (throw 'done body)))
-    (let ((prologue (cdr (or (assq :prologue params)
-                             (assq :prologue org-babel-default-header-args:tex-doc))))
-          (epilogue (cdr (or (assq :epilogue params)
-                             (assq :epilogue org-babel-default-header-args:tex-doc))))
-          (cls (cdr (or (assq :cls params)
-                        (assq :cls org-babel-default-header-args:tex-doc))))
-          (preamble (cdr (or (assq :preamble params)
-                             (assq :preamble org-babel-default-header-args:tex-doc))))
-          (enclose (cdr (or (assq :enclose params)
-                            (assq :enclose org-babel-default-header-args:tex-doc))))
-          (pkg (cdr (or (assq :pkg params)
-                        (assq :pkg org-babel-default-header-args:tex-doc))))
-          (env (cdr (or (assq :env params)
-                        (assq :env org-babel-default-header-args:tex-doc))))
-          (cmd (cdr (or (assq :cmd params)
-                        (assq :cmd org-babel-default-header-args:tex-doc))))
-          (comment (cdr (or (assq :comment params)
-                            (assq :comment org-babel-default-header-args:tex-doc))))
-          content)
-      ;; If the header arugment :comment is "no", there's no need to
-      ;; build the command that is shown at the top of the expanded
-      ;; buffer and that lists the required commnds for compiling the
-      ;; document.
-      (if (equal comment "no")
-          (setq cmd nil)
-        (progn
-          (unless cmd
-            (setq cmd ob-tex-doc-default-cmd))
-          (setq cmd
+  ;; If the header argument :expand is set to "no", then exit the
+  ;; function because nothing is to be done.
+  (let ((expand (or (cdr (assq :expand params))
+                    (cdr (assq :expand org-babel-default-header-args:tex-doc))))
+        ;; We initialize prologue and epilogue in this let form,
+        ;; because they are going to be used in the returned body
+        ;; regardless of the value of :expand
+        (prologue (or (cdr (assq :prologue params))
+                      (cdr (assq :prologue org-babel-default-header-args:tex-doc))))
+        (epilogue (or (cdr (assq :epilogue params))
+                      (cdr (assq :epilogue org-babel-default-header-args:tex-doc)))))
+    (cond
+     ((or
+       ;; If :expand is not set in the header arguments of the code
+       ;; block or in org-babel-default-header-args:tex-doc
+       (null expand)
+       ;; If :expand is explicitly set to "no"
+       (equal expand "no"))
+      (concat prologue body epilogue))
+     ((equal expand "yes")
+      (let ((cls
+             (or (cdr (assq :cls params))
+                 (cdr (assq :cls org-babel-default-header-args:tex-doc))))
+            (preamble
+             (or (cdr (assq :preamble params))
+                 (cdr (assq :preamble org-babel-default-header-args:tex-doc)))))
+            (enclose
+             (or (cdr (assq :enclose params))
+                 (cdr (assq :enclose org-babel-default-header-args:tex-doc))))
+            (pkg
+             (or (cdr (assq :pkg params))
+                 (cdr (assq :pkg org-babel-default-header-args:tex-doc))))
+            (env
+             (or (cdr (assq :env params))
+                 (cdr (assq :env org-babel-default-header-args:tex-doc))))
+            (comment-command
+             (or (cdr (assq :cmd params))
+                 (cdr (assq :cmd org-babel-default-header-args:tex-doc))))
+            (comment
+             (or (cdr (assq :comment params))
+                 (cdr (assq :comment org-babel-default-header-args:tex-doc)))))
+        ;; If the header arugment :comment is "no", there's no need to
+        ;; build the command that is shown at the top of the expanded
+        ;; buffer and that lists the required commnds for compiling the
+        ;; document.
+        (if (or
+             (null comment)
+             (equal comment "no"))
+            (setq comment-command nil)
+          (setq comment-command
                 (string-join
                  `("%% This file is intended to be compiled by executing the following"
                    "%% commands:"
@@ -123,59 +138,61 @@ remove unintended files."
                                     ((eq arg '_) "main")
                                     (t (shell-quote-argument arg))))
                                  x " ")))
-                      cmd))
-                 "\n"))))
-      (when pkg
-        (unless (listp pkg)
-          (error "The parameter :pkg needs to be a list"))
-        (setq pkg
-              (string-join
-               (mapcar
-                (lambda (x)
-                  (if (eq (string-to-char x) ?\[)
-                      (concat "\\usepackage" x )
-                    (concat "\\usepackage{" x "}")))
-                pkg)
-               "\n")))
-      (when cls
-        (setq cls
-              (cond
-               ((or (equal (string-to-char cls) ?\{)
-                    (equal (string-to-char cls) ?\[))
-                (concat "\\documentclass" cls))
-               ;; At this point, we know that "cls" is either an
-               ;; arbitrary value that doesn't start with a parentheses
-               ;; or square brackets, so we enclose it in square
-               ;; brackets.
-               (t
-                (concat "\\documentclass{" cls "}")))))
-      (unless (equal enclose "no")
-        (if (or (equal env "no")
-                (eq env nil))
-            ;; If there is no environment, the body need to have empty
-            ;; lines before and after it in order for body to be one
-            ;; line separated from the document environment.
-            (setq body (concat "\n" body "\n"))
+                      comment-command))
+                 "\n")))
+        (when pkg
+          (unless (listp pkg)
+            (error "The parameter :pkg needs to be a list"))
+          (setq pkg
+                (string-join
+                 (mapcar
+                  (lambda (x)
+                    (if (eq (string-to-char x) ?\[)
+                        (concat "\\usepackage" x )
+                      (concat "\\usepackage{" x "}")))
+                  pkg)
+                 "\n")))
+        (when cls
+          (setq cls
+                (cond
+                 ((or (equal (string-to-char cls) ?\{)
+                      (equal (string-to-char cls) ?\[))
+                  (concat "\\documentclass" cls))
+                 ;; At this point, we know that "cls" is either an
+                 ;; arbitrary value that doesn't start with a parentheses
+                 ;; or square brackets, so we enclose it in square
+                 ;; brackets.
+                 (t
+                  (concat "\\documentclass{" cls "}")))))
+        (unless (equal enclose "no")
+          (if (or (equal env "no")
+                  (eq env nil))
+              ;; If there is no environment, the body need to have empty
+              ;; lines before and after it in order for body to be one
+              ;; line separated from the document environment.
+              (setq body (concat "\n" body "\n"))
+            (setq body
+                  (string-join (list (concat "\\begin{" env "}")
+                                     body
+                                     (concat "\\end{" env "}"))
+                               "\n\n")))
           (setq body
-                (string-join (list (concat "\\begin{" env "}")
+                (string-join (list (concat "\\begin{document}")
                                    body
-                                   (concat "\\end{" env "}"))
-                             "\n\n")))
-        (setq body
-              (string-join (list (concat "\\begin{document}")
-                                 body
-                                 (concat "\\end{document}"))
-                           "\n")))
-      ;; nil is deleted to ensure that string-join doesn't insert
-      ;; newlines when some header arguments haven't been provided.
-      (setq content (delq nil `(,cmd
-                                ,prologue
-                                ,cls
-                                ,pkg
-                                ,preamble
-                                ,body
-                                ,epilogue)))
-      (string-join content "\n\n"))))
+                                   (concat "\\end{document}"))
+                             "\n")))
+
+        (string-join
+         ;; nil is deleted to ensure that string-join doesn't insert
+         ;; newlines when some header arguments haven't been provided.
+         (delq nil `(,comment-command
+                     ,prologue
+                     ,cls
+                     ,pkg
+                     ,preamble
+                     ,body
+                     ,epilogue))
+         "\n\n"))))))
 
 (defun org-babel-execute:tex-doc (body params)
   (let ((cmd (cdr (assq :cmd params)))
