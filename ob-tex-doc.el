@@ -1,9 +1,11 @@
-(defcustom ob-tex-doc-default-cmd '(("pdflatex" "%s"))
+(defcustom ob-tex-doc-default-cmd '(("pdflatex" _))
   "Default TeX compiler command")
 
 (defcustom ob-tex-doc-cmd-separator "&&"
   "Separator for the commands provided through the :cmd header
   argument.")
+
+(defvar org-babel-default-header-args:tex-doc nil)
 
 (defun ob-tex-doc-check-executables-installed (cmds)
   "Given the content of the :cmd header argument. A one-liner
@@ -23,7 +25,7 @@ for executing all those commands is returned."
       (mapconcat
        (lambda (arg)
          (cond
-          ((equal arg "%s") "main")
+          ((eq arg '_) "main")
           (t (shell-quote-argument arg))))
        x " "))
     cmds)
@@ -122,7 +124,7 @@ remove unintended files."
                                 (mapconcat
                                  (lambda (arg)
                                    (cond
-                                    ((equal arg "%s") "main")
+                                    ((eq arg '_) "main")
                                     (t (shell-quote-argument arg))))
                                  x " ")))
                       cmd))
@@ -139,19 +141,18 @@ remove unintended files."
                     (concat "\\usepackage{" x "}")))
                 pkg)
                "\n")))
-      (unless cls
-        (error "The :cls header argument hasn't been set"))
-      (setq cls
-            (cond
-             ((or (equal (string-to-char cls) ?\{)
-                  (equal (string-to-char cls) ?\[))
-              (concat "\\documentclass" cls))
-             ;; At this point, we know that "cls" is either an
-             ;; arbitrary value that doesn't start with a parentheses
-             ;; or square brackets, so we enclose it in square
-             ;; brackets.
-             (t
-              (concat "\\documentclass{" cls "}"))))
+      (when cls
+        (setq cls
+              (cond
+               ((or (equal (string-to-char cls) ?\{)
+                    (equal (string-to-char cls) ?\[))
+                (concat "\\documentclass" cls))
+               ;; At this point, we know that "cls" is either an
+               ;; arbitrary value that doesn't start with a parentheses
+               ;; or square brackets, so we enclose it in square
+               ;; brackets.
+               (t
+                (concat "\\documentclass{" cls "}")))))
       (unless (equal enclose "no")
         (if (or (equal env "no")
                 (eq env nil))
@@ -169,16 +170,15 @@ remove unintended files."
                                  body
                                  (concat "\\end{document}"))
                            "\n")))
-      (setq content `(,cmd
-                      ,prologue
-                      ,cls
-                      ,pkg
-                      ,preamble
-                      ,body
-                      ,epilogue))
       ;; nil is deleted to ensure that string-join doesn't insert
       ;; newlines when some header arguments haven't been provided.
-      (setq content (delq nil content))
+      (setq content (delq nil `(,cmd
+                                ,prologue
+                                ,cls
+                                ,pkg
+                                ,preamble
+                                ,body
+                                ,epilogue)))
       (string-join content "\n\n"))))
 
 (defun org-babel-execute:tex-doc (body params)
@@ -202,8 +202,9 @@ remove unintended files."
           (async-shell-command-buffer 'confirm-kill-process)
           (default-directory ob-tex-doc-tmp-dir)
           (org-babel-default-header-args:tex-doc
-           `((:tangle . ,(concat ob-tex-doc-tmp-dir "/main.tex"))
-             ,@org-babel-default-header-args:tex-doc))
+           `(,@org-babel-default-header-args:tex-doc
+             ;; We need to explicitly set the value for :tangle
+             (:tangle . ,(concat ob-tex-doc-tmp-dir "/main.tex"))))
           (display-buffer-overriding-action
            '(display-buffer-no-window)))
       ;; Remove auxiliary and log files to ensure that automatically
@@ -216,9 +217,6 @@ remove unintended files."
       ;; Compile the document
       (message "Executing %s" cmd)
       (async-shell-command cmd buffer-name))))
-
-(setq org-babel-default-header-args:tex-doc
-      '((:results . "silent")))
 
 (add-to-list 'org-src-lang-modes '("tex-doc" . latex))
 
