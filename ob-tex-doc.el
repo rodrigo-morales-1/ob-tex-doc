@@ -1,7 +1,5 @@
-(defcustom ob-tex-doc-default-cmd '(("pdflatex" _))
-  "Default TeX compiler command")
-
-(defvar org-babel-default-header-args:tex-doc nil)
+(defvar org-babel-default-header-args:tex-doc
+  '((:build . (("pdflatex" _)))))
 
 (defun ob-tex-doc-check-executables-installed (cmds)
   "Given the content of the :cmd header argument. A one-liner
@@ -9,7 +7,7 @@ for executing all those commands is returned."
   (mapcar
    (lambda (cmd)
      (unless (executable-find (car cmd))
-       (error "Executable %s is not installed" (car cmd))))
+       (error "Binary %s was not found." (car cmd))))
    cmds))
 
 (defun ob-tex-doc-build-command (cmds)
@@ -195,22 +193,15 @@ remove unintended files."
          "\n\n"))))))
 
 (defun org-babel-execute:tex-doc (body params)
-  (let ((cmd (cdr (assq :cmd params)))
-        (cmd-pre (cdr (or (assq :cmd-pre params)
-                          (assq :cmd-pre org-babel-default-header-args:tex-doc))))
-        command)
+  (let ((build (or (cdr (assq :build params))
+                   (cdr (assq :build org-babel-default-header-args:tex-doc)))))
+    (when (null build)
+      (error "The header argument :build is nil"))
+    (unless (listp build)
+      (error "The value of :build must be a list"))
     (ob-tex-doc-set-temp-dir)
-    (unless cmd
-      (setq cmd ob-tex-doc-default-cmd))
-    (unless (listp cmd)
-      (error "The value of :cmd needs to be a list"))
-    ;; Even if we are using `ob-tex-doc-default-cmd', we need to check
-    ;; that the executables are installed.
-    (ob-tex-doc-check-executables-installed cmd)
-    (setq cmd
-          (concat
-           cmd-pre
-           (ob-tex-doc-build-command cmd)))
+    (ob-tex-doc-check-executables-installed build)
+    (setq build (ob-tex-doc-build-command build))
     (let ((buffer-name "*Async Shell Command* (tex-doc)")
           (async-shell-command-buffer 'confirm-kill-process)
           (default-directory ob-tex-doc-tmp-dir)
@@ -228,8 +219,8 @@ remove unintended files."
       (let ((current-prefix-arg '(4)))
         (call-interactively 'org-babel-tangle))
       ;; Compile the document
-      (message "Executing %s" cmd)
-      (async-shell-command cmd buffer-name))))
+      (message "ob-tex-doc: Executing build command: %s" build)
+      (async-shell-command build buffer-name))))
 
 (add-to-list 'org-src-lang-modes '("tex-doc" . latex))
 
