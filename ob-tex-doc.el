@@ -1,10 +1,6 @@
 (defcustom ob-tex-doc-default-cmd '(("pdflatex" _))
   "Default TeX compiler command")
 
-(defcustom ob-tex-doc-cmd-separator "&&"
-  "Separator for the commands provided through the :cmd header
-  argument.")
-
 (defvar org-babel-default-header-args:tex-doc nil)
 
 (defun ob-tex-doc-check-executables-installed (cmds)
