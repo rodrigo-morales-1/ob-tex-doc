@@ -38,12 +38,24 @@ for executing all those commands is returned."
   (interactive)
   (unless ob-tex-doc-tmp-dir
     (error "The temporary directory hasn't been initialized yet, so there is no PDF file."))
-  (make-process
-   :name "xdg-open"
-   :command `("xdg-open"
-              ,(concat
-                (file-name-as-directory ob-tex-doc-tmp-dir)
-                "main.pdf"))))
+  ;; In Ubuntu 24.04.1 using GNU Emacs 29.4, using make-process as
+  ;; shown in the first code block below didn't open the file. However
+  ;; using call-process as shown in second code block below did open the file.
+  ;;
+  ;; #+BEGIN_SRC elisp
+  ;; (make-process
+  ;;  :name "xdg-open"
+  ;;  :command `("xdg-open"
+  ;;             ,(concat
+  ;;               (file-name-as-directory ob-tex-doc-tmp-dir)
+  ;;               "main.pdf"))))
+  ;;
+  ;; #+END_SRC
+  ;;
+  ;; #+BEGIN_SRC elisp
+  ;; (call-process "xdg-open" nil nil nil (concat (file-name-as-directory ob-tex-doc-tmp-dir) "main.pdf"))
+  ;; #+END_SRC
+  (call-process "xdg-open" nil nil nil (concat (file-name-as-directory ob-tex-doc-tmp-dir) "main.pdf")))
 
 (defun ob-tex-doc-set-temp-dir ()
   "Set the directory where code blocks are tangled, output
@@ -194,7 +206,7 @@ remove unintended files."
                      ,preamble
                      ,body
                      ,epilogue))
-         "\n\n"))))))
+         "\n\n")))))
 
 (defun org-babel-execute:tex-doc (body params)
   (let ((build (or (cdr (assq :build params))
