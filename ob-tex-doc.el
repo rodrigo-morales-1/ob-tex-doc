@@ -126,18 +126,18 @@ remove unintended files."
        (equal expand "no"))
       (concat prologue body epilogue))
      ((equal expand "yes")
-      (let ((cls
-             (or (cdr (assq :cls params))
-                 (cdr (assq :cls org-babel-default-header-args:tex-doc))))
+      (let ((documentclass
+             (or (cdr (assq :documentclass params))
+                 (cdr (assq :documentclass org-babel-default-header-args:tex-doc))))
             (preamble
              (or (cdr (assq :preamble params))
                  (cdr (assq :preamble org-babel-default-header-args:tex-doc))))
             (enclose
              (or (cdr (assq :enclose params))
                  (cdr (assq :enclose org-babel-default-header-args:tex-doc))))
-            (pkg
-             (or (cdr (assq :pkg params))
-                 (cdr (assq :pkg org-babel-default-header-args:tex-doc))))
+            (usepackage
+             (or (cdr (assq :usepackage params))
+                 (cdr (assq :usepackage org-babel-default-header-args:tex-doc))))
             (env
              (or (cdr (assq :env params))
                  (cdr (assq :env org-babel-default-header-args:tex-doc))))
@@ -170,30 +170,30 @@ remove unintended files."
                                  x " ")))
                       comment-command))
                  "\n")))
-        (when pkg
-          (unless (listp pkg)
-            (error "The parameter :pkg needs to be a list"))
-          (setq pkg
+        (when usepackage
+          (unless (listp usepackage)
+            (error "The parameter :usepackage needs to be a list"))
+          (setq usepackage
                 (string-join
                  (mapcar
                   (lambda (x)
                     (if (eq (string-to-char x) ?\[)
                         (concat "\\usepackage" x )
                       (concat "\\usepackage{" x "}")))
-                  pkg)
+                  usepackage)
                  "\n")))
-        (when cls
-          (setq cls
+        (when documentclass
+          (setq documentclass
                 (cond
-                 ((or (equal (string-to-char cls) ?\{)
-                      (equal (string-to-char cls) ?\[))
-                  (concat "\\documentclass" cls))
-                 ;; At this point, we know that "cls" is either an
+                 ((or (equal (string-to-char documentclass) ?\{)
+                      (equal (string-to-char documentclass) ?\[))
+                  (concat "\\documentclass" documentclass))
+                 ;; At this point, we know that "documentclass" is either an
                  ;; arbitrary value that doesn't start with a parentheses
                  ;; or square brackets, so we enclose it in square
                  ;; brackets.
                  (t
-                  (concat "\\documentclass{" cls "}")))))
+                  (concat "\\documentclass{" documentclass "}")))))
         (unless (equal enclose "no")
           (if (or (equal env "no")
                   (eq env nil))
@@ -216,8 +216,8 @@ remove unintended files."
          ;; newlines when some header arguments haven't been provided.
          (delq nil `(,comment-command
                      ,prologue
-                     ,cls
-                     ,pkg
+                     ,documentclass
+                     ,usepackage
                      ,preamble
                      ,body
                      ,epilogue))
