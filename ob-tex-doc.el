@@ -40,7 +40,9 @@ for executing all those commands is returned."
     (error "The temporary directory hasn't been initialized yet, so there is no PDF file."))
   ;; In Ubuntu 24.04.1 using GNU Emacs 29.4, using make-process as
   ;; shown in the first code block below didn't open the file. However
-  ;; using call-process as shown in second code block below did open the file.
+  ;; using call-process as shown in second code block below did open
+  ;; the file.  The problem with using call-process is that Emacs
+  ;; freezes until the process finishes.
   ;;
   ;; #+BEGIN_SRC elisp
   ;; (make-process
@@ -55,8 +57,22 @@ for executing all those commands is returned."
   ;; #+BEGIN_SRC elisp
   ;; (call-process "xdg-open" nil nil nil (concat (file-name-as-directory ob-tex-doc-tmp-dir) "main.pdf"))
   ;; #+END_SRC
-  (call-process "xdg-open" nil nil nil (concat (file-name-as-directory ob-tex-doc-tmp-dir) "main.pdf")))
-
+  ;;
+  ;; UPDATE 2024-12-09: I used the sexp below and the file was
+  ;; opened. I was using GNU Emacs 29.4 in Ubuntu 24.04.1. In a
+  ;; previous occassion, I was using the same Emacs version and the
+  ;; same Ubuntu version but the command didn't open the file, I don't
+  ;; know what caused that issue.
+  ;;
+  ;; #+BEGIN_SRC elisp
+  ;; (make-process
+  ;;  :buffer "*foo*"
+  ;;  :name "xdg-open"
+  ;;  :command `("xdg-open" ,(concat (file-name-as-directory ob-tex-doc-tmp-dir) "main.pdf")))
+  ;; #+END_SRC
+  (make-process
+   :name "xdg-open"
+   :command `("xdg-open" ,(concat (file-name-as-directory ob-tex-doc-tmp-dir) "main.pdf"))))
 (defun ob-tex-doc-set-temp-dir ()
   "Set the directory where code blocks are tangled, output
 files are saved and log files created by TeX compilers are
@@ -115,7 +131,7 @@ remove unintended files."
                  (cdr (assq :cls org-babel-default-header-args:tex-doc))))
             (preamble
              (or (cdr (assq :preamble params))
-                 (cdr (assq :preamble org-babel-default-header-args:tex-doc)))))
+                 (cdr (assq :preamble org-babel-default-header-args:tex-doc))))
             (enclose
              (or (cdr (assq :enclose params))
                  (cdr (assq :enclose org-babel-default-header-args:tex-doc))))
@@ -195,7 +211,6 @@ remove unintended files."
                                    body
                                    (concat "\\end{document}"))
                              "\n")))
-
         (string-join
          ;; nil is deleted to ensure that string-join doesn't insert
          ;; newlines when some header arguments haven't been provided.
@@ -206,7 +221,7 @@ remove unintended files."
                      ,preamble
                      ,body
                      ,epilogue))
-         "\n\n")))))
+         "\n\n"))))))
 
 (defun org-babel-execute:tex-doc (body params)
   (let ((build (or (cdr (assq :build params))
