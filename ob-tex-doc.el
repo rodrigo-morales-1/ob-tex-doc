@@ -1,5 +1,5 @@
 (defvar org-babel-default-header-args:tex-doc
-  '((:build . (("pdflatex" _)))
+  '((:build . (("pdflatex" jobname)))
     ;; By default, we set :results to "silent", because we don't show
     ;; anything in the #+RESULTS block because the build command is
     ;; executed asynchronously.
@@ -23,7 +23,7 @@ for executing all those commands is returned."
       (mapconcat
        (lambda (arg)
          (cond
-          ((eq arg '_) "main")
+          ((eq arg 'jobname) "main")
           (t (shell-quote-argument arg))))
        x " "))
     cmds)
@@ -141,35 +141,36 @@ remove unintended files."
             (environment
              (or (cdr (assq :environment params))
                  (cdr (assq :environment org-babel-default-header-args:tex-doc))))
-            (comment-command
-             (or (cdr (assq :cmd params))
-                 (cdr (assq :cmd org-babel-default-header-args:tex-doc))))
-            (comment
-             (or (cdr (assq :comment params))
-                 (cdr (assq :comment org-babel-default-header-args:tex-doc)))))
+            (tangle-build-command
+             (or (cdr (assq :tangle-build-command params))
+                 (cdr (assq :tangle-build-command org-babel-default-header-args:tex-doc))))
+             comment-build-command)
         ;; If the header arugment :comment is "no", there's no need to
         ;; build the command that is shown at the top of the expanded
         ;; buffer and that lists the required commnds for compiling the
         ;; document.
         (if (or
-             (null comment)
-             (equal comment "no"))
-            (setq comment-command nil)
-          (setq comment-command
-                (string-join
-                 `("%% This file is intended to be compiled by executing the following"
-                   "%% commands:"
-                   ,@(mapcar
-                      (lambda (x)
-                        (concat "%% $ "
-                                (mapconcat
-                                 (lambda (arg)
-                                   (cond
-                                    ((eq arg '_) "main")
-                                    (t (shell-quote-argument arg))))
-                                 x " ")))
-                      comment-command))
-                 "\n")))
+             (null tangle-build-command)
+             (equal tangle-build-command "no"))
+            (setq comment-build-command nil)
+          (let ((build-command (or (cdr (assq :build params))
+                                   (cdr (assq :build org-babel-default-header-args:tex-doc)))))
+            (setq comment-build-command
+                  (if (null build-command)
+                      nil
+                    (string-join
+                     `("%% This file is intended to be compiled by executing the commands in the following order:"
+                       ,@(mapcar
+                          (lambda (x)
+                            (concat "%% $ "
+                                    (mapconcat
+                                     (lambda (arg)
+                                       (cond
+                                        ((eq arg 'jobname) "main")
+                                        (t (shell-quote-argument arg))))
+                                     x " ")))
+                          build-command))
+                     "\n")))))
         (when usepackage
           (unless (listp usepackage)
             (error "The parameter :usepackage needs to be a list"))
@@ -214,7 +215,7 @@ remove unintended files."
         (string-join
          ;; nil is deleted to ensure that string-join doesn't insert
          ;; newlines when some header arguments haven't been provided.
-         (delq nil `(,comment-command
+         (delq nil `(,comment-build-command
                      ,prologue
                      ,documentclass
                      ,usepackage
