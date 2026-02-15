@@ -138,9 +138,9 @@ remove unintended files."
             (usepackage
              (or (cdr (assq :usepackage params))
                  (cdr (assq :usepackage org-babel-default-header-args:tex-doc))))
-            (env
-             (or (cdr (assq :env params))
-                 (cdr (assq :env org-babel-default-header-args:tex-doc))))
+            (environment
+             (or (cdr (assq :environment params))
+                 (cdr (assq :environment org-babel-default-header-args:tex-doc))))
             (comment-command
              (or (cdr (assq :cmd params))
                  (cdr (assq :cmd org-babel-default-header-args:tex-doc))))
@@ -195,16 +195,16 @@ remove unintended files."
                  (t
                   (concat "\\documentclass{" documentclass "}")))))
         (unless (equal enclose "no")
-          (if (or (equal env "no")
-                  (eq env nil))
+          (if (or (equal environment "no")
+                  (eq environment nil))
               ;; If there is no environment, the body need to have empty
               ;; lines before and after it in order for body to be one
               ;; line separated from the document environment.
               (setq body (concat "\n" body "\n"))
             (setq body
-                  (string-join (list (concat "\\begin{" env "}")
+                  (string-join (list (concat "\\begin{" environment "}")
                                      body
-                                     (concat "\\end{" env "}"))
+                                     (concat "\\end{" environment "}"))
                                "\n\n")))
           (setq body
                 (string-join (list (concat "\\begin{document}")
