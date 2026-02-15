@@ -150,13 +150,15 @@ remove unintended files."
              (null tangle-build-command)
              (equal tangle-build-command "no"))
             (setq comment-build-command nil)
-          (let ((build-command (or (cdr (assq :build params))
-                                   (cdr (assq :build org-babel-default-header-args:tex-doc)))))
+          (let ((build-command (or (cdr (assq :build-command params))
+                                   (cdr (assq :build-command org-babel-default-header-args:tex-doc)))))
             (setq comment-build-command
                   (if (null build-command)
                       nil
                     (string-join
-                     `("%% This file is intended to be compiled by executing the commands in the following order:"
+                     `(,(concat "%% This file is intended to be compiled by executing the commands in\n"
+                                "%% the following order:\n"
+                                "%%")
                        ,@(mapcar
                           (lambda (x)
                             (concat "%% $ "
