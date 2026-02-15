@@ -132,9 +132,6 @@ remove unintended files."
             (preamble
              (or (cdr (assq :preamble params))
                  (cdr (assq :preamble org-babel-default-header-args:tex-doc))))
-            (enclose
-             (or (cdr (assq :enclose params))
-                 (cdr (assq :enclose org-babel-default-header-args:tex-doc))))
             (usepackage
              (or (cdr (assq :usepackage params))
                  (cdr (assq :usepackage org-babel-default-header-args:tex-doc))))
@@ -195,23 +192,23 @@ remove unintended files."
                  ;; brackets.
                  (t
                   (concat "\\documentclass{" documentclass "}")))))
-        (unless (equal enclose "no")
-          (if (or (equal environment "no")
-                  (eq environment nil))
+        (unless (or (equal environment "no")
+                    (eq environment nil))
               ;; If there is no environment, the body need to have empty
               ;; lines before and after it in order for body to be one
               ;; line separated from the document environment.
-              (setq body (concat "\n" body "\n"))
             (setq body
-                  (string-join (list (concat "\\begin{" environment "}")
-                                     body
-                                     (concat "\\end{" environment "}"))
-                               "\n\n")))
-          (setq body
-                (string-join (list (concat "\\begin{document}")
-                                   body
-                                   (concat "\\end{document}"))
-                             "\n")))
+                  (string-join (list
+                                (concat "\\begin{" environment "}")
+                                body
+                                (concat "\\end{" environment "}"))
+                               "\n")))
+          (setq body (string-join
+                      (list
+                       "\\begin{document}"
+                       body
+                       "\\end{document}")
+                       "\n"))
         (string-join
          ;; nil is deleted to ensure that string-join doesn't insert
          ;; newlines when some header arguments haven't been provided.
