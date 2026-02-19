@@ -73,7 +73,8 @@ for executing all those commands is returned."
   (make-process
    :name "xdg-open"
    :command `("xdg-open" ,(concat (file-name-as-directory ob-tex-doc-tmp-dir) "main.pdf"))))
-(defun ob-tex-doc-set-temp-dir ()
+
+(defun ob-tex-doc-set-tmp-dir ()
   "Set the directory where code blocks are tangled, output
 files are saved and log files created by TeX compilers are
 saved.
@@ -231,7 +232,7 @@ remove unintended files."
       (error "The header argument :build-command is nil"))
     (unless (listp build-command)
       (error "The value of :build-command must be a list"))
-    (ob-tex-doc-set-temp-dir)
+    (ob-tex-doc-set-tmp-dir)
     (ob-tex-doc-check-executables-installed build-command)
     (setq build-command-string (ob-tex-doc-build-command build-command))
     (let ((buffer-name "*Async Shell Command* (tex-doc)")
