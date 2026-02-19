@@ -1,3 +1,10 @@
+(defcustom ob-tex-doc-compilation-buffer-name "*Async Shell Command* (tex-doc)"
+  "Name of the buffer that shows the compilation output.")
+
+(defcustom ob-tex-doc-force-display-compilation-buffer t
+  "Boolean value that determines whether the compilation buffer should be
+displayed whenever a tex-doc code block is run.")
+
 (defvar org-babel-default-header-args:tex-doc
   '((:build . (("pdflatex" jobname)))
     ;; By default, we set :results to "silent", because we don't show
@@ -105,6 +112,11 @@ remove unintended files."
   ;; minted.
   (dolist (file (directory-files-recursively ob-tex-doc-tmp-dir ""))
     (delete-file file)))
+
+(defun ob-tex-doc-display-compilation-buffer ()
+  "Display compilation buffer."
+  (interactive)
+  (display-buffer ob-tex-doc-compilation-buffer-name))
 
 (defun org-babel-expand-body:tex-doc (body params)
   ;; If the header argument :expand is set to "no", then exit the
@@ -235,7 +247,7 @@ remove unintended files."
     (ob-tex-doc-set-tmp-dir)
     (ob-tex-doc-check-executables-installed build-command)
     (setq build-command-string (ob-tex-doc-build-command build-command))
-    (let ((buffer-name "*Async Shell Command* (tex-doc)")
+    (let ((buffer-name ob-tex-doc-compilation-buffer-name)
           (async-shell-command-buffer 'confirm-kill-process)
           (default-directory ob-tex-doc-tmp-dir)
           (org-babel-default-header-args:tex-doc
@@ -253,7 +265,9 @@ remove unintended files."
         (call-interactively 'org-babel-tangle))
       ;; Compile the document
       (message "ob-tex-doc: Executing build command: %s" build-command-string)
-      (async-shell-command build-command-string buffer-name))))
+      (async-shell-command build-command-string buffer-name)
+      (when ob-tex-doc-force-display-compilation-buffer
+        (ob-tex-doc-display-compilation-buffer)))))
 
 (add-to-list 'org-src-lang-modes '("tex-doc" . latex))
 
