@@ -6,7 +6,11 @@
 displayed whenever a tex-doc code block is run.")
 
 (defvar org-babel-default-header-args:tex-doc
-  '((:build . (("pdflatex" jobname)))
+  '((:build-command . (("pdflatex" jobname)))
+    ;; The ":expand" header argument makes code blocks to be expanded
+    ;; to their original content. That is, it makes the header
+    ;; arguments ":environment" and ":packages" have no effect.
+    (:expand . "no")
     ;; By default, we set :results to "silent", because we don't show
     ;; anything in the #+RESULTS block because the build command is
     ;; executed asynchronously.
@@ -274,6 +278,8 @@ remove unintended files."
       (when ob-tex-doc-force-display-compilation-buffer
         (ob-tex-doc-display-compilation-buffer)))))
 
+;; The following expression makes Org Mode use LaTeX syntax
+;; highlighting for code blocks whose language is tex-doc.
 (add-to-list 'org-src-lang-modes '("tex-doc" . latex))
 
 (provide 'ob-tex-doc)
