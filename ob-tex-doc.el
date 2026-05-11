@@ -98,10 +98,15 @@ when compiling, is under the /tmp/ directory.
 This is done to ensure that `ob-tex-doc-tmp-dir-clean' doesn't
 remove unintended files."
   ;; TODO: Check directory doesn't contain symbolic links.
-  (if (or (not (string-match "^/tmp/" ob-tex-doc-tmp-dir))
-          (string-match "/../" ob-tex-doc-tmp-dir))
-      nil
-    t))
+  (cond
+   ((eq system-type 'windows-nt)
+    (if (string-match "/AppData/Local/Temp/" ob-tex-doc-temp-dir)
+	t
+      nil))
+   ((eq system-type 'gnu/linux)
+    (if (string-match "^/tmp/" ob-tex-doc-temp-dir)
+	t
+      nil))))
 
 (defun ob-tex-doc-tmp-dir-clean ()
   (unless (ob-tex-doc-tmp-dir-in-tmp)
