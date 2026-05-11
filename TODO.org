@@ -1,3 +1,26 @@
+* TODO Add function for visiting the temporary directory
+:PROPERTIES:
+:CREATED: [2026-05-10 22:09:40 -0500]
+:END:
+
+* TODO Support ob-tex-doc-open-pdf-file for Windows systems
+:PROPERTIES:
+:CREATED: [2026-05-10 22:09:53 -0500]
+:END:
+:LOGBOOK:
+- State "TODO"       from              [2026-05-10 Sun 22:10]
+:END:
+
+* TODO Add flag to disable interaction mode in Windows sytems
+:PROPERTIES:
+:CREATED: [2026-05-10 22:10:29 -0500]
+:END:
+:LOGBOOK:
+- State "TODO"       from              [2026-05-10 Sun 22:10]
+:END:
+
+We need to disable this because when the process is still active, the temporary files can't be deleted in Windows sytems, so the function =ob-tex-doc-tmp-dir-clean= fails.
+
 * DONE Define =comment= header argument for omiting documentation string at the beginning of the expansion
 :PROPERTIES:
 :CUSTOM_ID: 1
@@ -51,6 +74,10 @@ This is done to reduce the number of characters.
 
 This is done to reduce the number of characters.
 
+* Rename header argument =enclose= to =preamble=
+:PROPERTIES:
+:CREATED: [2024-02-28 18:00:49 -05]
+:END:
 * TODO Add =after-begin= and =before-end= header arguments
 :PROPERTIES:
 :CUSTOM_ID: 5
