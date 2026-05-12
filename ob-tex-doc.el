@@ -44,6 +44,15 @@ for executing all those commands is returned."
   "This variable is not intended to be modified since its value
   is automatically set.")
 
+(defun ob-tex-doc-find-file-tmp-dir ()
+  "Visit the directory containing the temporary files."
+  (interactive)
+  ;; If the temporary directory has not been initialized, initialize
+  ;; it.
+  (unless ob-tex-doc-tmp-dir
+    (ob-tex-doc-set-tmp-dir))
+  (find-file (file-name-as-directory ob-tex-doc-tmp-dir)))
+
 (defun ob-tex-doc-open-pdf-file ()
   "Open the resulting PDF file"
   (interactive)
