@@ -56,43 +56,19 @@ for executing all those commands is returned."
 (defun ob-tex-doc-open-pdf-file ()
   "Open the resulting PDF file"
   (interactive)
+  ;; Idea retrieved from embark-open-externally from the package embark
   (unless ob-tex-doc-tmp-dir
-    (error "The temporary directory hasn't been initialized yet, so there is no PDF file."))
-  ;; In Ubuntu 24.04.1 using GNU Emacs 29.4, using make-process as
-  ;; shown in the first code block below didn't open the file. However
-  ;; using call-process as shown in second code block below did open
-  ;; the file.  The problem with using call-process is that Emacs
-  ;; freezes until the process finishes.
-  ;;
-  ;; #+BEGIN_SRC elisp
-  ;; (make-process
-  ;;  :name "xdg-open"
-  ;;  :command `("xdg-open"
-  ;;             ,(concat
-  ;;               (file-name-as-directory ob-tex-doc-tmp-dir)
-  ;;               "main.pdf"))))
-  ;;
-  ;; #+END_SRC
-  ;;
-  ;; #+BEGIN_SRC elisp
-  ;; (call-process "xdg-open" nil nil nil (concat (file-name-as-directory ob-tex-doc-tmp-dir) "main.pdf"))
-  ;; #+END_SRC
-  ;;
-  ;; UPDATE 2024-12-09: I used the sexp below and the file was
-  ;; opened. I was using GNU Emacs 29.4 in Ubuntu 24.04.1. In a
-  ;; previous occassion, I was using the same Emacs version and the
-  ;; same Ubuntu version but the command didn't open the file, I don't
-  ;; know what caused that issue.
-  ;;
-  ;; #+BEGIN_SRC elisp
-  ;; (make-process
-  ;;  :buffer "*foo*"
-  ;;  :name "xdg-open"
-  ;;  :command `("xdg-open" ,(concat (file-name-as-directory ob-tex-doc-tmp-dir) "main.pdf")))
-  ;; #+END_SRC
-  (make-process
-   :name "xdg-open"
-   :command `("xdg-open" ,(concat (file-name-as-directory ob-tex-doc-tmp-dir) "main.pdf"))))
+    (error "The temporary directory hasn't been initialized yet, so there is no
+*.pdf file to open."))
+  (let ((pdf-file (concat (file-name-as-directory ob-tex-doc-tmp-dir) "main.pdf")))
+    (if (and (eq system-type 'windows-nt)
+             (fboundp 'w32-shell-execute))
+	(w32-shell-execute "open" pdf-file)
+      (call-process (pcase system-type
+                      ('darwin "open")
+                      ('cygwin "cygstart")
+                      (_ "xdg-open"))
+                    nil 0 nil pdf-file))))
 
 (defun ob-tex-doc-set-tmp-dir ()
   "Set the directory where code blocks are tangled, output
