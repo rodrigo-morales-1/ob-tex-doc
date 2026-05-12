@@ -268,7 +268,12 @@ remove unintended files."
       ;; Remove auxiliary and log files to ensure that automatically
       ;; created files by previous compilations doesn't interfere with
       ;; the current one.
-      (ob-tex-doc-tmp-dir-clean)
+      (if ob-tex-doc-tmp-dir
+	  ;; If the directory is set, clean the directory
+	  (ob-tex-doc-tmp-dir-clean)
+	;; If the temporary directory has not been initialized,
+	;; initialize it.
+	(ob-tex-doc-set-tmp-dir))
       ;; Tangle the source code block at point.
       (let ((current-prefix-arg '(4)))
         (call-interactively 'org-babel-tangle))
