@@ -104,11 +104,11 @@ remove unintended files."
   ;; TODO: Check directory doesn't contain symbolic links.
   (cond
    ((eq system-type 'windows-nt)
-    (if (string-match "/AppData/Local/Temp/" ob-tex-doc-temp-dir)
+    (if (string-match "/AppData/Local/Temp/" ob-tex-doc-tmp-dir)
 	t
       nil))
    ((eq system-type 'gnu/linux)
-    (if (string-match "^/tmp/" ob-tex-doc-temp-dir)
+    (if (string-match "^/tmp/" ob-tex-doc-tmp-dir)
 	t
       nil))))
 
