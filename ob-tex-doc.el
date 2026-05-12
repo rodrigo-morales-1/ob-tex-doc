@@ -6,7 +6,7 @@
 displayed whenever a tex-doc code block is run.")
 
 (defvar org-babel-default-header-args:tex-doc
-  '((:build-command . (("pdflatex" jobname)))
+  '((:build-command . (("pdflatex" "-interaction=nonstopmode" jobname)))
     ;; The ":expand" header argument makes code blocks to be expanded
     ;; to their original content. That is, it makes the header
     ;; arguments ":environment" and ":packages" have no effect.
