@@ -99,13 +99,22 @@ remove unintended files."
 
 (defun ob-tex-doc-tmp-dir-clean ()
   (unless (ob-tex-doc-tmp-dir-in-tmp)
-    (error "Value of ob-tex-doc-tmp-dir is not under /tmp/. Not
-    proceeding to delete files."))
-
+    (error "Value of ob-tex-doc-tmp-dir doesn't seem to be a temporary directory. Therefore, to secure potential important files, no file has been deleted. Set the value of ob-tex-doc-tmp-dir to a proper value."))
   ;; TODO: Include directories since some packages create them such as
   ;; minted.
   (dolist (file (directory-files-recursively ob-tex-doc-tmp-dir ""))
-    (delete-file file)))
+    ;; We don't remove the *.pdf file because in Windows 11, when a
+    ;; PDF reader has the output *.pdf file opened, it is not possible
+    ;; to delete the file because Windows warns that the file is being
+    ;; used by another application.
+    ;;
+    ;; Windows 11 only complains when we attempt to delete the file,
+    ;; but it doesn't complains if we overwrite the file, so it is
+    ;; possible to overwrite the *.pdf file which makes the PDF viewer
+    ;; (e.g. Okular) to update the contents of the *.pdf that the PDF
+    ;; viewer is currently showing.
+    (unless (string-match-p ".pdf\\'" file)
+      (delete-file file))))
 
 (defun ob-tex-doc-display-compilation-buffer ()
   "Display compilation buffer."
