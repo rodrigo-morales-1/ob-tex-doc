@@ -97,23 +97,31 @@ remove unintended files."
 	t
       nil))))
 
-(defun ob-tex-doc-tmp-dir-clean ()
+(defun ob-tex-doc-tmp-dir-clean (keep-files)
   (unless (ob-tex-doc-tmp-dir-in-tmp)
     (error "Value of ob-tex-doc-tmp-dir doesn't seem to be a temporary directory. Therefore, to secure potential important files, no file has been deleted. Set the value of ob-tex-doc-tmp-dir to a proper value."))
   ;; TODO: Include directories since some packages create them such as
   ;; minted.
   (dolist (file (directory-files-recursively ob-tex-doc-tmp-dir ""))
-    ;; We don't remove the *.pdf file because in Windows 11, when a
-    ;; PDF reader has the output *.pdf file opened, it is not possible
-    ;; to delete the file because Windows warns that the file is being
-    ;; used by another application.
-    ;;
-    ;; Windows 11 only complains when we attempt to delete the file,
-    ;; but it doesn't complains if we overwrite the file, so it is
-    ;; possible to overwrite the *.pdf file which makes the PDF viewer
-    ;; (e.g. Okular) to update the contents of the *.pdf that the PDF
-    ;; viewer is currently showing.
-    (unless (string-match-p ".pdf\\'" file)
+    (catch 'continue
+      ;; We don't remove the *.pdf file because in Windows 11, when a
+      ;; PDF reader has the output *.pdf file opened, it is not possible
+      ;; to delete the file because Windows warns that the file is being
+      ;; used by another application.
+      ;;
+      ;; Windows 11 only complains when we attempt to delete the file,
+      ;; but it doesn't complains if we overwrite the file, so it is
+      ;; possible to overwrite the *.pdf file which makes the PDF viewer
+      ;; (e.g. Okular) to update the contents of the *.pdf that the PDF
+      ;; viewer is currently showing.
+      (when (string-match-p ".pdf\\'" file)
+	(throw 'continue t))
+      ;; Skip those files that match any of the regular expressions in
+      ;; the header argument ":keep-files"
+      (dolist (regex keep-files)
+	(when (string-match regex file))
+	(throw 'continue t))
+      ;; Remove
       (delete-file file))))
 
 (defun ob-tex-doc-display-compilation-buffer ()
@@ -241,7 +249,10 @@ remove unintended files."
 
 (defun org-babel-execute:tex-doc (body params)
   (let ((build-command (or (cdr (assq :build-command params))
+			   
                            (cdr (assq :build-command org-babel-default-header-args:tex-doc))))
+	(keep-files (or (cdr (assq :keep-files params))
+                        (cdr (assq :keep-files org-babel-default-header-args:tex-doc))))
         build-command-string)
     (when (null build-command)
       (error "The header argument :build-command is nil"))
@@ -264,7 +275,7 @@ remove unintended files."
       ;; the current one.
       (if ob-tex-doc-tmp-dir
 	  ;; If the directory is set, clean the directory
-	  (ob-tex-doc-tmp-dir-clean)
+	  (ob-tex-doc-tmp-dir-clean keep-files)
 	;; If the temporary directory has not been initialized,
 	;; initialize it.
 	(ob-tex-doc-set-tmp-dir))
