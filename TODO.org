@@ -1,4 +1,4 @@
-* TODO Find a way to remove the PDF file while it is opened in Okular in Windows 11
+* DONE Find a way to remove the PDF file while it is opened in Okular in Windows 11
  
 In GNU/Linux, there is no restriction when trying to remove a PDF file that is opened by Okular, after the new PDF is generated, the running instance of Okular shows the new PDF file. In Windows 11, the system doesn't allow Emacs to remove a file that is currently being shown by Okular, so it is not possible to execute code block because it is not possible to remove the previous PDF file when trying to clean the directory.
 
@@ -80,7 +80,7 @@ This is done to reduce the number of characters.
 
 This is done to reduce the number of characters.
 
-* Rename header argument =enclose= to =preamble=
+* TODO Rename header argument =enclose= to =preamble=
 :PROPERTIES:
 :CREATED: [2024-02-28 18:00:49 -05]
 :END:
