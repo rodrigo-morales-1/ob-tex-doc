@@ -1,22 +1,6 @@
-#+PROPERTY: HEADER-ARGS:DASH+ :exports results
-#+PROPERTY: HEADER-ARGS:DASH+ :dir /tmp/
-#+PROPERTY: HEADER-ARGS:TEX-DOC+ :tangle /tmp/main.tex
-
 * Introduction
 
-This Org Babel implementation is aimed to people who
-
-+ likes experimenting with TeX
-+ likes playing with TeX
-+ take notes on TeX (this doesn't mean using TeX on their notes)
-
-The gif shown below shows the features of this package.
-
-[[file:./img/1.gif]]
-
-* Warning
-
-This package has only been tested in Linux, you mustn't use this package in Windows. The reason of this warning is because there is a function which recursively delete files (an operation with possible undesirable effects if not executed the right way) in a directory and, for the time being, there are only checks for files located at =/tmp/= (i.e. the path is hardcoded since I hadn't have enough time to test this package on Windows).
+This Org Babel implementation is aimed to people who like tinkering with TeX.
 
 * Examples
 
@@ -24,22 +8,65 @@ See [[file:./examples.org]].
 
 * Supported header arguments
 
-+ =:prologue=
-  + Not documented because already documented in the Org Mode manual.
-+ =:epilogue=
-  + Not documented because already documented in the Org Mode manual.
-+ =:class=
-  + A string that is used in =\documentclass{...}=.
-+ =:preamble=
-  + A string that is located after the =\documentclass= and before the =document= environment.
-+ =:enclose=
-  + Defines whether the content of the code block need to be enclosed within the =document= environment.
-+ =:package=
-  + Defines the package that need to be included in the file.
-+ =:compile=
-  + Defines the compilation steps for compiling the document.
-+ =:comment=
-  + Defines whether comment with compilation instructions need to be included in the tangled file.
-+ =:expand=
-  + Defines whether all the other header arguments must take effect.
 
+** =:documentclass=
+
+Allowed value: string.
+
+A string that is used after =\documentclass=.
+
+This header argument only has effect when =expand= is set to =yes=.
+
+** =:preamble=
+
+Allowed value: string.
+
+string that is located after the =\documentclass= and before the =document= environment.
+
+This header argument only has effect when =expand= is set to =yes=.
+
+** =:usepackage=
+
+Allowed value: List of strings.
+
+It defines the packages that are included in the file.
+
+This header argument only has effect when =expand= is set to =yes=.
+
+** =:environment=
+
+Allowed value: string.
+
+This header argument sets the environment that is used to enclose the content of the code block.
+
+This header argument only has effect when =expand= is set to =yes=.
+
+** =:expand=
+
+Allowed values: =yes= and =no=
+
+If =yes=, the header arguments =documentclass=, =preamble=, =usepackage=,  and =environment= are used. If =no=, those header arguments are not used.
+
+** =:build-command=
+
+Allowed value: List of lists of strings.
+
+Defines the compilation steps for compiling the document.
+
+Example: =:build-command '(("pdflatex" jobname) ("bibtex" jobname) ("pdflatex" jobname) ("pdflatex" jobname))=
+
+** =:tangle-build-command=
+
+Allowed values: =yes= and =no=
+
+Determines whether a comment with compilation instructions need to be included in the tangled file.
+
+** =:keep-files=
+
+Allowed values: List of regular expressions
+
+Determines which files are not deleted when cleaning the temporary directory where the compilation occurs.
+
+** =:prologue= and =:epilogue=
+
+These header arguments is documented in the Org Mode info manual in the section "Inserting headers and footers".
