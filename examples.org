@@ -1,30 +1,19 @@
-* PDFLaTeX
+To fully understand the examples in this file, you should open this file using GNU Emacs or view the raw version of this file, so that you can see the header arguments for each code block. Don't read it from an Org Mode previewer (e.g. Github built-in Org Mode previewer), because the header arguments are hidden.
 
-The following inserts a table.
+* Minimal working examples
 
-#+begin_src org
-,#+HEADER: :cls article
-,#+BEGIN_SRC tex-doc
-\begin{table}
-  \centering
-  \begin{tabular}{|c|c|}
-    \hline a & b
-    \\ \hline c & d
-    \\ \hline
-  \end{tabular}
-\end{table}
-,#+END_SRC
-#+end_src
-
-#+begin_src latex :exports code
-%% This file is intended to be compiled by executing the following
-%% commands:
-%% $ pdflatex {filename}
-
+#+BEGIN_SRC tex-doc
 \documentclass{article}
 
 \begin{document}
+Hello World!
+\end{document}
+#+END_SRC
 
+#+BEGIN_SRC tex-doc
+\documentclass{article}
+
+\begin{document}
 \begin{table}
   \centering
   \begin{tabular}{|c|c|}
@@ -32,68 +21,174 @@ The following inserts a table.
     \\ \hline c & d
     \\ \hline
   \end{tabular}
+  \caption{My table}
 \end{table}
-
 \end{document}
-#+end_src
+#+END_SRC
 
-The following inserts a paragraph.
-
-#+begin_src org
-,#+HEADER: :cls article
-,#+HEADER: :pkg lipsum
-,#+BEGIN_SRC tex-doc
-\lipsum[1]
-,#+END_SRC
-#+end_src
-
-#+begin_src latex :exports code
-%% This file is intended to be compiled by executing the following
-%% commands:
-%% $ pdflatex {filename}
-
+#+BEGIN_SRC tex-doc
 \documentclass{article}
 
 \usepackage{lipsum}
 
 \begin{document}
-
 \lipsum[1]
-
 \end{document}
-#+end_src
+#+END_SRC
 
-#+begin_src org
-,#+HEADER: :cls article
-,#+HEADER: :pkg minted
-,#+HEADER: :cmd pdflatex -shell-escape
-,#+BEGIN_SRC tex-doc
-\begin{minted}{python}
-class Person:
-  def __init__(self, name, age):
-    self.name = name
-    self.age = age
-\end{minted}
-,#+END_SRC
-#+end_src
+* Example using minted
 
-#+begin_src latex :exports code
-%% This file is intended to be compiled by executing the following
-%% commands:
-%% $ pdflatex -shell-escape {filename}
-
+#+HEADER: :build-command '(("pdflatex" "-shell-escape" "-interaction=nonstopmode" jobname) ("pdflatex" "-shell-escape" "-interaction=nonstopmode" jobname))
+#+BEGIN_SRC tex-doc
 \documentclass{article}
 
 \usepackage{minted}
 
 \begin{document}
-
 \begin{minted}{python}
 class Person:
   def __init__(self, name, age):
     self.name = name
     self.age = age
 \end{minted}
+\end{document}
+#+END_SRC
+
+* Example using TikZ
+:PROPERTIES:
+:HEADER-ARGS:TEX-DOC+: :documentclass "[tikz]{standalone}"
+:HEADER-ARGS:TEX-DOC+: :environment tikzpicture
+:HEADER-ARGS:TEX-DOC+: :expand yes
+:END:
+
+Note that in the properties drawer of this heading, we have set the header arguments. Thus, we don't have to repeat the same header arguments under this heading.
+
+#+begin_src tex-doc
+\draw (0,0) node[anchor=north]{$A$}
+  -- (4,0) node[anchor=north]{$C$}
+  -- (4,4) node[anchor=south]{$B$}
+  -- cycle;
+#+end_src
+
+#+begin_src tex-doc
+\draw[->] (-3, 0) -- (4.2, 0) node[right] {$x$};
+\draw[->] (0, -3) -- (0, 4.2) node[above] {$y$};
+\draw[scale=0.5, domain=-3:3, smooth, variable=\x, blue] plot ({\x}, {\x*\x});
+#+end_src
+
+* Example with bibliography
+
+First, we need to tangle the bibliography. In GNU Emacs 30.2, it is possible to tangle the code lbock at point by pressing C-c C-v C-t (which runs =org-babel-tangle=).
+
+#+HEADER: :tangle (concat ob-tex-doc-tmp-dir "/references.bib")
+#+begin_src bibtex
+@book{texbook,
+  author = {Donald E. Knuth},
+  year = {1986},
+  title = {The {\TeX} Book},
+  publisher = {Addison-Wesley Professional}
+}
+
+@book{latex2e,
+  author = {Leslie Lamport},
+  year = {1994},
+  title = {{\LaTeX}: a Document Preparation System},
+  publisher = {Addison Wesley},
+  address = {Massachusetts},
+  edition = {2}
+}
+
+@article{knuth:1984,
+  title={Literate Programming},
+  author={Donald E. Knuth},
+  journal={The Computer Journal},
+  volume={27},
+  number={2},
+  pages={97--111},
+  year={1984},
+  publisher={Oxford University Press}
+}
+#+end_src
+
+The =:keep-files= header argument will avoid the =references.bib= file to be deleted in the temporary directory.
+
+#+HEADER: :keep-files '("\\.bib\\'")
+#+HEADER: :build-command '(("pdflatex" jobname) ("bibtex" jobname) ("pdflatex" jobname) ("pdflatex" jobname))
+#+BEGIN_SRC tex-doc
+\documentclass{article}
+
+\usepackage[backend=bibtex]{biblatex}
+\addbibresource{references.bib}
+
+\begin{document}
+This is the first paragraph \cite{texbook}.
+\par This is the second paragraph \cite{latex2e}.
+\par This is the third paragraph \cite{knuth:1984}.
+
+\printbibliography
+\end{document}
+#+END_SRC
+
+* A LuaLaTeX example
+
+Example below retrieved from https://www.alanshawn.com/tech/2020/06/20/luatex-intro.html
+
+#+HEADER: :build-command '(("lualatex" "-interaction=nonstopmode" jobname))
+#+begin_src tex-doc
+\documentclass{article}
+
+\usepackage{luacode}
+\usepackage{tasks}
+
+\begin{document}
+\begin{luacode*}
+    function compute_sqrt(v)
+        local s = math.sqrt(tonumber(v))
+        local s_f = math.floor(s)
+        local o
+        if (math.abs(s_f * s_f - v) < 1.0e-5) then
+            o = string.format("%.1f", s)
+        else
+            o = string.format("%.6f", s)
+        end
+        tex.print(o)
+    end
+\end{luacode*}
+
+\newcommand{\luasqrt}[1]{\directlua{compute_sqrt(#1)}}
+
+\ExplSyntaxOn
+\tl_clear:N \l_tmpa_tl
+\tl_put_right:Nn \l_tmpa_tl {\begin{tasks}[style=itemize](4)}
+\int_set:Nn \l_tmpa_int {0}
+\int_do_while:nNnn {\l_tmpa_int} < {31} {
+    \tl_put_right:Nx \l_tmpa_tl {\exp_not:N \task $\exp_not:N\sqrt{\int_use:N \l_tmpa_int}=\luasqrt{\int_use:N \l_tmpa_int}$ \space}
+    \int_incr:N \l_tmpa_int
+} 
+\tl_put_right:Nn \l_tmpa_tl {\end{tasks}}
+
+\tl_use:N \l_tmpa_tl
+\ExplSyntaxOff
+
+\end{document} 
+#+end_src
+
+* A XeLaTeX example
+
+#+HEADER: :build-command '(("xelatex" "-interaction=nonstopmode" jobname))
+#+begin_src tex-doc
+\documentclass{article}
+
+\usepackage{fontspec}
+
+\setmainfont{Cambria}
+\setmonofont{Consolas}
+
+\begin{document}
+
+This document will use "Cambria" as the main font and "Consolas" as the monospaced font. Both fonts are available in Windows 11.
+
+\texttt{A sample text in monospaced font.}
 
 \end{document}
 #+end_src
