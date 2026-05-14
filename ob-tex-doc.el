@@ -95,7 +95,9 @@ remove unintended files."
    ((eq system-type 'gnu/linux)
     (if (string-match "^/tmp/" ob-tex-doc-tmp-dir)
 	t
-      nil))))
+      nil))
+   (t
+    (error "Your operating system is not supported. Please open an issue in source code repository.of the ob-tex-doc package."))))
 
 (defun ob-tex-doc-tmp-dir-clean (keep-files)
   (unless (ob-tex-doc-tmp-dir-in-tmp)
